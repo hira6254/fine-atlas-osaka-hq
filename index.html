@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow, noarchive" />
+  <title>ファインアトラス｜大阪本社 外食・寿司・海鮮居酒屋チェーン本部 テレアポ営業コンパス（厳選62社）</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="font-large">
+  <!-- トップヘッダー -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-row">
+        <div class="brand-badge">株式会社ファインアトラス（ファインスタッフ × 対馬水産）｜本部バイヤー攻略専用</div>
+        <div class="header-actions">
+          <div class="font-switcher" role="group" aria-label="文字サイズ切替">
+            <span class="switcher-label">文字サイズ:</span>
+            <button type="button" class="btn-font" data-size="normal">標準</button>
+            <button type="button" class="btn-font active" data-size="large">大（推奨）</button>
+            <button type="button" class="btn-font" data-size="xlarge">特大</button>
+          </div>
+          <a href="ファインアトラス_大阪本社_外食・寿司・海鮮居酒屋チェーン本部_テレアポ営業台帳.xlsx" download class="btn-excel-dl">
+            📥 Excel営業台帳（.xlsx）をダウンロード
+          </a>
+        </div>
+      </div>
+
+      <h1 class="app-title">
+        🏢 大阪本社「外食・寿司・海鮮居酒屋・和食チェーン本部」テレアポ営業コンパス
+      </h1>
+      <p class="app-subtitle">
+        大阪府内に本社・本部を置く<strong>多店舗展開チェーン全62社（実在電話番号・所在地・展開ブランド・受付突破＆バイヤー商談トーク完備）</strong>。<br />
+        個店ではなく<strong>「本部の商品部・仕入バイヤー・メニュー開発担当」</strong>へアプローチし、1社成約で5〜100店舗への一括・季節フェア導入を狙う専用コンパスです。
+      </p>
+
+      <!-- KPI サマリーバー -->
+      <div class="kpi-grid" id="kpiGrid">
+        <div class="kpi-card kpi-total">
+          <div class="kpi-label">大阪本社チェーン 総数</div>
+          <div class="kpi-value"><span id="kpiTotal">62</span><small>社</small></div>
+          <div class="kpi-note">全社大阪府内本社・実在番号検証済</div>
+        </div>
+        <div class="kpi-card kpi-s">
+          <div class="kpi-label">🔥 最優先 Sランク（寿司・海鮮本部）</div>
+          <div class="kpi-value"><span id="kpiRankS">20</span><small>社</small></div>
+          <div class="kpi-note">直球ど真ん中（音羽・さしす・すなおや等）</div>
+        </div>
+        <div class="kpi-card kpi-a">
+          <div class="kpi-label">⭐ 重点 Aランク（居酒屋・和食本部）</div>
+          <div class="kpi-value"><span id="kpiRankA">26</span><small>社</small></div>
+          <div class="kpi-note">季節フェア・会席鉢物・1〜2店テスト導入</div>
+        </div>
+        <div class="kpi-card kpi-progress">
+          <div class="kpi-label">📞 架電アプローチ済 / アポ獲得</div>
+          <div class="kpi-value"><span id="kpiCalled">0</span><small>社</small> / <span id="kpiOrdered">0</span><small>件</small></div>
+          <div class="kpi-note">ブラウザ自動保存（CSV出力対応）</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- メインナビタブ -->
+  <nav class="main-tabs" aria-label="表示モード切替">
+    <div class="tabs-inner">
+      <button type="button" class="tab-btn active" data-tab="tab-list">
+        📋 ① 大阪本社リスト＆1タップ架電（<span id="tabCountBadge">62</span>社）
+      </button>
+      <button type="button" class="tab-btn" data-tab="tab-scripts">
+        🎤 ② 本部バイヤー専用・受付突破＆切り返しトーク集
+      </button>
+      <button type="button" class="tab-btn" data-tab="tab-products">
+        🐟 ③ チェーン本部向け主力5商材＆お試しセット規格表
+      </button>
+    </div>
+  </nav>
+
+  <main class="main-container">
+    <!-- ========================================================= -->
+    <!-- TAB 1: 大阪本社リスト＆1タップ架電                          -->
+    <!-- ========================================================= -->
+    <section id="tab-list" class="tab-panel active">
+      <!-- フィルター＆検索パネル -->
+      <div class="filter-panel">
+        <div class="filter-row">
+          <div class="filter-group search-group">
+            <label for="searchInput">🔍 社名・屋号（ブランド）・住所・魚種で検索</label>
+            <input type="search" id="searchInput" placeholder="例：さしす、音羽、すなおや、江坂、煮穴子、のどぐろ..." />
+          </div>
+
+          <div class="filter-group">
+            <label for="rankFilter">🎯 優先ランク</label>
+            <select id="rankFilter">
+              <option value="ALL">すべてのランク（62社）</option>
+              <option value="S">🔥 Sランク：寿司・海鮮居酒屋・炉端チェーン本部（20社）</option>
+              <option value="A">⭐ Aランク：総合居酒屋・和食・割烹・しゃぶしゃぶ本部（26社）</option>
+              <option value="B">🍤 Bランク：蕎麦・うどん・天ぷら・専門料理本部（16社）</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="categoryFilter">🏢 業態セグメント</label>
+            <select id="categoryFilter">
+              <option value="ALL">すべての業態カテゴリ</option>
+              <option value="① 寿司・海鮮居酒屋・炉端チェーン本部">🍣 ① 寿司・海鮮居酒屋・炉端チェーン本部</option>
+              <option value="② 総合居酒屋・大衆酒場・ダイニング本部">🍶 ② 総合居酒屋・大衆酒場・ダイニング本部</option>
+              <option value="③ 和食・割烹・しゃぶしゃぶ・仕出し本部">🍱 ③ 和食・割烹・しゃぶしゃぶ・仕出し本部</option>
+              <option value="④ 蕎麦・うどん・天ぷら・専門料理チェーン本部">🍤 ④ 蕎麦・うどん・天ぷら・専門料理チェーン本部</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <div class="filter-group">
+            <label for="areaFilter">🗺️ 大阪府内 本社エリア</label>
+            <select id="areaFilter">
+              <option value="ALL">すべての本社エリア（大阪府全域）</option>
+              <option value="北摂（吹田・豊中・茨木・池田）">★ 北摂（吹田・豊中・茨木・池田）— お膝元・即訪問可</option>
+              <option value="キタ（梅田・福島・天満・中津）">キタ（梅田・福島・天満・中津）</option>
+              <option value="中央区（本町・心斎橋・難波・道頓堀）">中央区（本町・心斎橋・難波・道頓堀）</option>
+              <option value="新大阪・淀川・京橋・東部">新大阪・淀川・京橋・東部（東三国・西中島・田川北）</option>
+              <option value="天王寺・阿倍野・なんば南部・湾岸">天王寺・阿倍野・なんば南部・湾岸</option>
+              <option value="堺・南大阪・東大阪">堺・南大阪・東大阪</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="fishFilter">🐟 提案したい主力商材</label>
+            <select id="fishFilter">
+              <option value="ALL">すべての主力商材</option>
+              <option value="無添加炊き上げ煮穴子">無添加炊き上げ煮穴子（寿司・鉢物・セイロ飯）</option>
+              <option value="活〆真穴子フィレ">活〆真穴子フィレ（一本天ぷら・穴子フライ・串）</option>
+              <option value="鱗付き赤甘鯛フィレ">鱗付き赤甘鯛フィレ（松笠焼き・うろこ焼き・鉄板）</option>
+              <option value="炙りのどぐろ">炙りのどぐろ（炙り寿司・刺身・焼き物）</option>
+              <option value="皮むき剣先イカ柵">皮むき剣先イカ柵（お造り・寿司・天ぷら）</option>
+            </select>
+          </div>
+
+          <div class="filter-group">
+            <label for="statusFilter">📞 架電進捗ステータス</label>
+            <select id="statusFilter">
+              <option value="ALL">すべての進捗ステータス</option>
+              <option value="未架電">未架電のみ表示</option>
+              <option value="受付・資料送付済">受付・資料送付済</option>
+              <option value="バイヤー不在・再架電">バイヤー不在・再架電</option>
+              <option value="サンプル・お試し送付">サンプル・お試し送付</option>
+              <option value="商談・試食アポ獲得">商談・試食アポ獲得</option>
+              <option value="テスト導入・成約">テスト導入・成約</option>
+              <option value="見送り・時期改め">見送り・時期改め</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-footer">
+          <div class="result-summary">
+            該当件数: <strong id="filteredCount">62</strong> 社
+          </div>
+          <div class="utility-buttons">
+            <button type="button" id="btnResetFilters" class="btn-secondary">🔄 絞り込み解除</button>
+            <button type="button" id="btnExportCsv" class="btn-secondary">📤 架電メモ付きCSVを出力</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 企業カード一覧コンテナ -->
+      <div id="companyCardsContainer" class="company-cards-grid"></div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- TAB 2: 本部バイヤー専用・受付突破＆切り返しトーク集          -->
+    <!-- ========================================================= -->
+    <section id="tab-scripts" class="tab-panel">
+      <div class="panel-intro">
+        <h2>🎤 大阪チェーン本部（商品部・購買バイヤー）専用 トークスクリプト＆反論処理</h2>
+        <p>
+          個店への電話と違い、本社へのテレアポは<strong>「① 受付の方に売り込みと思われず商品部バイヤーへ繋いでもらうこと」</strong>と、
+          <strong>「② 既存の大手卸と競合しない『職人一次加工済み・店舗仕込みゼロ商材』としてサンプル試食アポを取ること」</strong>が最大の急所です。
+        </p>
+      </div>
+
+      <div id="hqScriptsContainer" class="scripts-stack"></div>
+
+      <div class="panel-intro mt-large">
+        <h2>🛡️ 本社架電でよくある断り文句への切り返し（反論処理 6選）</h2>
+        <p>受付やバイヤーからよく出る6つの断り文句に対し、そのまま読み上げて切り返せる実践スクリプトです。</p>
+      </div>
+
+      <div id="hqObjectionsContainer" class="objections-grid"></div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- TAB 3: チェーン本部向け主力5商材＆お試しセット規格表         -->
+    <!-- ========================================================= -->
+    <section id="tab-products" class="tab-panel">
+      <div class="panel-intro">
+        <h2>🐟 ファインアトラス 主力5商材＋公式お試しセット（チェーン本部提案用スペック）</h2>
+        <p>
+          多店舗チェーン本部が最も重視する<strong>「① アルバイトでも調理可能（職人不要）」「② 歩留まり100%・廃棄ロスゼロ」「③ 原価率26〜30%で全店均一品質」</strong>の3大メリット一覧です。
+        </p>
+        <div class="quick-links-bar">
+          <a href="https://fineatlas.co.jp/" target="_blank" rel="noopener noreferrer" class="btn-link-pill">
+            🌐 ファインアトラス公式サイトを開く
+          </a>
+          <a href="https://zmqxpe-6h.myshopify.com/products/trialset" target="_blank" rel="noopener noreferrer" class="btn-link-pill accent">
+            🎁 公式お試しセット（税込10,000円・送料無料）ページを開く
+          </a>
+        </div>
+      </div>
+
+      <div id="productsCatalogContainer" class="products-grid"></div>
+    </section>
+  </main>
+
+  <!-- ========================================================= -->
+  <!-- 大文字トークカンペ モーダル（架電中に1タップで開く）          -->
+  <!-- ========================================================= -->
+  <div id="scriptModal" class="modal-backdrop" hidden>
+    <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalCompanyName">
+      <div class="modal-header">
+        <div>
+          <span id="modalRankBadge" class="rank-badge">Sランク</span>
+          <h2 id="modalCompanyName" class="modal-title">会社名</h2>
+          <p id="modalBrands" class="modal-subtitle"></p>
+        </div>
+        <button type="button" id="btnCloseModal" class="btn-modal-close" aria-label="閉じる">✕ 閉じる</button>
+      </div>
+
+      <div class="modal-call-bar">
+        <a id="modalCallLink" href="tel:06-0000-0000" class="btn-call-giant">
+          📞 <span id="modalPhoneText">06-0000-0000</span> に発信する
+        </a>
+        <div class="modal-target-box">
+          <div><strong>🎯 狙う部署：</strong><span id="modalTargetDept"></span></div>
+          <div><strong>🐟 推奨商材：</strong><span id="modalRecFish"></span></div>
+        </div>
+      </div>
+
+      <div class="modal-tabs">
+        <button type="button" class="modal-tab-btn active" data-mtab="mtab-reception">
+          ① 受付突破トーク（代表電話→バイヤー取次ぎ）
+        </button>
+        <button type="button" class="modal-tab-btn" data-mtab="mtab-buyer">
+          ② バイヤー接続トーク（サンプル持参・試食打診）
+        </button>
+        <button type="button" class="modal-tab-btn" data-mtab="mtab-objection">
+          ③ 断り文句への切り返し（反論処理6選）
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div id="mtab-reception" class="modal-tab-content active">
+          <div class="cue-label">▼ 受付・代表電話が出たら、そのまま読み上げてください：</div>
+          <div id="modalScriptReception" class="cue-script-box"></div>
+          <button type="button" id="btnCopyReception" class="btn-copy-script">📋 受付突破トークをコピー</button>
+        </div>
+
+        <div id="mtab-buyer" class="modal-tab-content">
+          <div class="cue-label">▼ 商品部バイヤー・仕入責任者に繋がったら、そのまま読み上げてください：</div>
+          <div id="modalScriptBuyer" class="cue-script-box"></div>
+          <div class="pitch-angle-alert">
+            <strong>💡 この本部に刺さる理由：</strong><span id="modalPitchAngle"></span>
+          </div>
+          <button type="button" id="btnCopyBuyer" class="btn-copy-script">📋 バイヤー商談トークをコピー</button>
+        </div>
+
+        <div id="mtab-objection" class="modal-tab-content">
+          <div class="cue-label">▼ 受付やバイヤーの反応に合わせてタップしてください：</div>
+          <div id="modalObjectionsList" class="modal-objections-stack"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- トースト通知 -->
+  <div id="toastNotice" class="toast-notice" hidden>コピーしました</div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
