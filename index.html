@@ -72,6 +72,9 @@
       <button type="button" class="tab-btn" data-tab="tab-products">
         🐟 ③ チェーン本部向け主力5商材＆お試しセット規格表
       </button>
+      <button type="button" class="tab-btn" data-tab="tab-visits" style="background:linear-gradient(135deg,#0f172a,#1e3a8a);color:#fff;border-color:#38bdf8;">
+        👑 ④ 訪問商談・結果管理（社長ボード・サイボウズ日報自動転記）
+      </button>
     </div>
   </nav>
 
@@ -211,6 +214,13 @@
 
       <div id="productsCatalogContainer" class="products-grid"></div>
     </section>
+
+    <!-- ========================================================= -->
+    <!-- TAB 4: 訪問商談・結果管理（社長ボード・サイボウズ日報自動転記） -->
+    <!-- ========================================================= -->
+    <section id="tab-visits" class="tab-panel">
+      <div class="js-fine-visit-board-container"></div>
+    </section>
   </main>
 
   <!-- ========================================================= -->
@@ -277,6 +287,8 @@
   <div id="toastNotice" class="toast-notice" hidden>コピーしました</div>
 
   <script src="data.js"></script>
+  <script src="visit_reports_data.js"></script>
+  <script src="visit_reports_widget.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
