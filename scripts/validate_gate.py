@@ -52,8 +52,8 @@ def main() -> int:
 
     companies = json.loads(MASTER_JSON.read_text(encoding="utf-8"))
     count = len(companies)
-    if not (50 <= count <= 100):
-        errors.append(f"Company count {count} is outside target range 50..100")
+    if not (150 <= count <= 250):
+        errors.append(f"Company count {count} is outside target range 150..250")
 
     seen_ids = set()
     seen_names = set()
