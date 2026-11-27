@@ -107,6 +107,7 @@ def is_same_shop(shop_a: str, title_b: str) -> bool:
         "cosmologia": ["コスモロジア"],
         "latlas": ["ラトラス"],
         "ラトゥーエル": ["latourelle"],
+        "テーブルナイス": ["tablenice"],
     }
     for k, alias_list in typo_aliases.items():
         if k in na or k in ca:
@@ -181,6 +182,76 @@ def fetch_cybozu_threads_live(cy_user: str, cy_pass: str) -> Dict[str, Dict[str,
     return threads
 
 
+TELEAPO_ONLY_AUTHORS_RE = re.compile(r"(?:高橋|髙橋|武市|中島|東山)")
+SALES_VISIT_AUTHORS_RE = re.compile(r"(?:戸井|有福|藤井|富田|西川|宮川|山上)")
+
+
+def is_allowed_sales_visit_author(author_name: str) -> bool:
+    a = str(author_name or "").strip()
+    if not a:
+        return False
+    if TELEAPO_ONLY_AUTHORS_RE.search(a):
+        return False
+    return bool(SALES_VISIT_AUTHORS_RE.search(a))
+
+
+def extract_tomita_visit_blocks(body: str, rid: str, lbl: str, c_no: str, author: str, posted_at: str) -> List[Dict[str, Any]]:
+    out: List[Dict[str, Any]] = []
+    lines = [ln.strip() for ln in str(body or "").splitlines() if ln.strip()]
+    taikin_idx = -1
+    sched_shops: List[str] = []
+    for idx, ln in enumerate(lines[:20]):
+        if "退勤" in ln:
+            taikin_idx = idx
+            break
+        m_tm = re.match(r"^\d{1,2}:\d{2}\s*(.+)$", ln)
+        if m_tm:
+            cand = m_tm.group(1).strip()
+            if not any(cand.startswith(w) for w in ["本社", "梅田営業所", "梅田 会議", "会議"]):
+                sched_shops.append(cand)
+    if taikin_idx == -1 or not sched_shops:
+        return out
+
+    narrative = lines[taikin_idx + 1 :]
+    sec_starts: List[Tuple[int, str]] = []
+    for n_idx, n_ln in enumerate(narrative):
+        if n_ln.startswith("次回出勤") or n_ln.startswith("1日を通して店長がおられない"):
+            sec_starts.append((n_idx, "__END__"))
+            continue
+        clean_ln = re.sub(r"^\d{1,2}:\d{2}\s*", "", n_ln).strip()
+        cl_norm = norm_for_match(clean_ln)
+        if not cl_norm:
+            continue
+        matched_shop = ""
+        for ss in sched_shops:
+            ss_norm = norm_for_match(ss)
+            if ss_norm and (cl_norm.startswith(ss_norm) or ss_norm.startswith(cl_norm[: max(3, len(ss_norm))])):
+                matched_shop = ss
+                break
+        if matched_shop:
+            sec_starts.append((n_idx, matched_shop))
+
+    for k, (st_idx, title) in enumerate(sec_starts):
+        if title == "__END__":
+            continue
+        ed_idx = sec_starts[k + 1][0] if k + 1 < len(sec_starts) else len(narrative)
+        chunk = "\n".join(narrative[st_idx:ed_idx]).strip()
+        if chunk:
+            out.append({
+                "threadRid": rid,
+                "threadLabel": lbl,
+                "commentNo": int(c_no),
+                "source": f"サイボウズ『{lbl}』#{c_no}",
+                "author": author,
+                "postedAt": posted_at,
+                "title": title,
+                "rawText": chunk,
+                "isTeleapoTagged": "テレアポ" in chunk,
+                "isJumpIn": "飛び込み" in title,
+            })
+    return out
+
+
 def parse_visit_blocks_from_threads(threads: Dict[str, Dict[str, str]]) -> List[Dict[str, Any]]:
     visit_blocks: List[Dict[str, Any]] = []
 
@@ -196,6 +267,10 @@ def parse_visit_blocks_from_threads(threads: Dict[str, Dict[str, str]]) -> List[
         for idx_h, hm in enumerate(hdrs):
             c_no = hm.group(1)
             author = hm.group(2).strip()
+            # 高橋・武市・中島・東山（テレアポ専任）や非営業担当の投稿は営業訪問報告に含めない
+            if not is_allowed_sales_visit_author(author):
+                continue
+
             posted_at = hm.group(3).strip()
             st = hm.end()
             ed = hdrs[idx_h + 1].start() if idx_h + 1 < len(hdrs) else len(txt)
@@ -206,6 +281,10 @@ def parse_visit_blocks_from_threads(threads: Dict[str, Dict[str, str]]) -> List[
                 body,
                 flags=re.M,
             ).strip()
+
+            # 全国テレアポ報告（rRID=124797）内のアポ獲得連絡フォーマットは右欄（獲得メモ）用のため除外
+            if rid == "124797" and re.search(r"【テレアポ(?:獲得案件|\s*パンフレット配布案件)】", body):
+                continue
 
             # 1) Toi style ◆ShopName...
             if "◆" in body:
@@ -274,7 +353,6 @@ def parse_visit_blocks_from_threads(threads: Dict[str, Dict[str, str]]) -> List[
 
             # 3) Nishikawa / Arifuku numbered teleapo report items (①〜⑩)
             if rid == "69" and ("テレアポ" in body or "アポイント" in body or "累計" in body):
-                # Split before cumulative summary table if detailed sections exist
                 main_section = body
                 for m_num in re.finditer(r"(?:^|\n)([①-⑩])\s*(?:(\d{1,2}/\d{1,2})\s+)?([^\n]+)", main_section):
                     rest = main_section[m_num.end() :]
@@ -294,7 +372,6 @@ def parse_visit_blocks_from_threads(threads: Dict[str, Dict[str, str]]) -> List[
                         "isJumpIn": False,
                     })
 
-                # Also extract follow-up reply comments like >558 Cosmologia
                 if ">>" in body and "⇒" in body:
                     m_q = re.search(r">>\s*[①-⑩]?\s*([^\n]+)", body)
                     if m_q:
@@ -311,86 +388,9 @@ def parse_visit_blocks_from_threads(threads: Dict[str, Dict[str, str]]) -> List[
                             "isJumpIn": False,
                         })
 
-            # 4) Tomita style in 関西：富田 湧介_日報
+            # 4) Tomita style in 関西：富田 湧介_日報 (schedule-anchored per-shop extraction)
             if rid == "243259" and author.startswith("富田"):
-                lines = body.splitlines()
-                skip_headers = {
-                    "朝会議後、ファインアトラス用のトークスクリプトを作成、",
-                    "ファインスタッフ営業用資料と名刺を用意して梅田へ。",
-                    "1日を通してカレンダーお渡しやテレアポの資料お渡し",
-                    "午後は梅田営業所に移動して戸井さんのファインスタッフ営業同行。",
-                }
-                for li, ln in enumerate(lines):
-                    if re.match(r"^\d{1,2}:\d{2}\s*", ln) or ln.startswith("【") or ln.startswith("次回出勤") or ln in skip_headers:
-                        continue
-                    if (
-                        2 <= len(ln) <= 36
-                        and not ln.endswith("。")
-                        and not ln.endswith("、")
-                        and not ln.startswith("・")
-                        and not ln.startswith("※")
-                    ):
-                        sub_lines = [ln]
-                        for lj in range(li + 1, min(len(lines), li + 12)):
-                            nxt = lines[lj]
-                            if (
-                                2 <= len(nxt) <= 36
-                                and not nxt.endswith("。")
-                                and not nxt.endswith("、")
-                                and not nxt.startswith("・")
-                            ) or nxt.startswith("次回出勤"):
-                                break
-                            sub_lines.append(nxt)
-                        if len(sub_lines) >= 2:
-                            joined = "\n".join(sub_lines)
-                            visit_blocks.append({
-                                "threadRid": rid,
-                                "threadLabel": lbl,
-                                "commentNo": int(c_no),
-                                "source": f"サイボウズ『{lbl}』#{c_no}",
-                                "author": author,
-                                "postedAt": posted_at,
-                                "title": ln,
-                                "rawText": joined,
-                                "isTeleapoTagged": "テレアポ" in joined,
-                                "isJumpIn": "飛び込み" in ln,
-                            })
-
-            # 5) Takahashi / Teleapo detailed acquisition & schedule notes in 【FS】全国テレアポ 報告 (rRID=124797)
-            if rid == "124797" and ("【テレアポ" in body or "獲得：" in body):
-                lines = [ln.strip() for ln in body.splitlines() if ln.strip()]
-                # Extract shop name candidate from lines
-                shop_cand = ""
-                for ln in lines[:6]:
-                    if any(w in ln for w in ["【テレアポ", "〇", "獲得：", "担当：", "商談方法：", "席数：", "客単価：", "～アポ", "～商談"]):
-                        if "獲得：" in ln and not ln.startswith("獲得："):
-                            shop_cand = re.sub(r"[\s　]*[：:]?獲得[：:].*$", "", ln).strip()
-                            break
-                        continue
-                    if not re.match(r"^\d{1,2}[月/]\d{1,2}", ln):
-                        shop_cand = ln
-                        break
-                if not shop_cand:
-                    for ln in reversed(lines[-8:]):
-                        if any(w in ln for w in ["住所", "TEL", "HP", "食べログ", "http", "↓", "・"]):
-                            continue
-                        if 2 <= len(ln) <= 35:
-                            shop_cand = ln
-                            break
-                if shop_cand:
-                    visit_blocks.append({
-                        "threadRid": rid,
-                        "threadLabel": lbl,
-                        "commentNo": int(c_no),
-                        "source": f"サイボウズ『{lbl}』#{c_no}（アポ詳細投稿）",
-                        "author": author,
-                        "postedAt": posted_at,
-                        "title": shop_cand,
-                        "rawText": body,
-                        "isTeleapoTagged": True,
-                        "isJumpIn": False,
-                        "isApoHandoverNote": True,
-                    })
+                visit_blocks.extend(extract_tomita_visit_blocks(body, rid, lbl, c_no, author, posted_at))
 
     return visit_blocks
 
@@ -400,9 +400,7 @@ def classify_visit_status(reports: List[Dict[str, Any]], apo_dt_str: str, shop_n
     Returns (visitStatusBadge, sentimentRank)
     """
     sales_reports = [r for r in reports if not r.get("isApoHandoverNote")]
-    handover_reports = [r for r in reports if r.get("isApoHandoverNote")]
     combined = "\n".join(r.get("rawText", "") for r in sales_reports)
-    handover_text = "\n".join(r.get("rawText", "") for r in handover_reports)
 
     if not sales_reports:
         m_dt = re.search(r"(20\d{2})[/\-](\d{1,2})[/\-](\d{1,2})", str(apo_dt_str or ""))
@@ -410,10 +408,6 @@ def classify_visit_status(reports: List[Dict[str, Any]], apo_dt_str: str, shop_n
             ymd = f"{int(m_dt.group(1)):04d}/{int(m_dt.group(2)):02d}/{int(m_dt.group(3)):02d}"
             if ymd >= "2026/11/26":
                 return ("🗓️ 訪問予定（アポ確定・訪問前）", "訪問前")
-        if "11月26日" in handover_text or "11月27日" in handover_text or "11月30日" in handover_text or "12月" in handover_text:
-            return ("🗓️ 訪問予定（アポ確定・訪問前）", "訪問前")
-        if "会社案内をいただきたい" in handover_text or "メール" in handover_text:
-            return ("📧 事前資料送付・商談調整中", "事前送付済")
         return ("⏳ 訪問結果確認中（日程調整・報告待ち）", "確認中")
 
     if any(w in combined for w in ["契約済", "契約書の雛形送付済", "契約書雛形メールにて送付", "個別契約書を更新", "提案人員調整中"]):

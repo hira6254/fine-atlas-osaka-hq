@@ -227,10 +227,15 @@ function syncCybozuVisitReportsToLedgerInGas() {
 
     for (var h = 0; h < hdrs.length; h++) {
       var curH = hdrs[h];
+      /* 高橋・武市・中島・東山（テレアポ専任）や非営業担当の投稿は営業訪問報告に含めない */
+      if (/(?:高橋|髙橋|武市|中島|東山)/.test(curH.author)) continue;
+      if (!/(?:戸井|有福|藤井|富田|西川|宮川|山上)/.test(curH.author)) continue;
+
       var endPos = (h + 1 < hdrs.length) ? hdrs[h + 1].start : targetText.length;
       var body = targetText.slice(curH.bodyStart, endPos)
         .replace(/(?:いいね！|確認しました|「(?:いいね！|確認しました)」を取り消す|返信する|固定リンク|削除する|\d+\s*名|名)\s*$/gm, '')
         .trim();
+      if (th.rRID === '124797' && /【テレアポ(?:獲得案件|\s*パンフレット配布案件)】/.test(body)) continue;
 
       /* パターンA: ◆店舗名（戸井日報ほか） */
       if (body.indexOf('◆') !== -1) {
